@@ -1,15 +1,23 @@
-import { Alert, Button, TextInput } from 'flowbite-react'
+import { Alert, Button, Modal, TextInput } from 'flowbite-react'
 import { useEffect, useRef, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { getDownloadURL, getStorage, ref, uploadBytesResumable } from 'firebase/storage'
 import { app } from '../firebase'
 import { CircularProgressbar } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
-import { updateStart, updateSuccess, updateFailure } from '../redux/user/userSlice'
+import { 
+    updateStart, 
+    updateSuccess, 
+    updateFailure,
+    deleteUserStart,
+    deleteUserSuccess,
+    deleteUserFailure
+} from '../redux/user/userSlice'
 import { useDispatch } from 'react-redux'
+import { HiOutlineExclamationCircle } from 'react-icons/hi'
 
 export default function DashProfile() {
-    const { currentUser } = useSelector((state) => state.user)
+    const { currentUser, error } = useSelector((state) => state.user)
     const [imageFile, setImageFile] = useState(null)
     const [imageFileUrl, setImageFileUrl] = useState(null)
     const [imageFileUploadProgress, setImageFileUploadProgress] = useState(null)
@@ -17,6 +25,7 @@ export default function DashProfile() {
     const [imageFileUpLoading, setImageFileUpLoading] = useState(false)
     const [updateUserSuccess, setUpdateUserSuccess] = useState(null)
     const [updateUserError, setUpdateUserError] = useState(null)
+    const [showModal, setShowModal] = useState(false)
     const [fromData, setFromData] = useState({})
     const filePickerRef = useRef()
     const dispath = useDispatch()
@@ -113,7 +122,25 @@ export default function DashProfile() {
             setUpdateUserError(date.message)
         }
     }
-    
+
+    const handleDeleteUser = async () => {
+        setShowModal(false)
+        try {
+            dispath(deleteUserStart())
+            const res = await fetch(`/api/user/delete/${currentUser._id}`, {
+                method: 'DELETE'
+            })
+            const data = await res.json()
+            if(!res.ok) {
+                dispath(deleteUserFailure(data.message))
+            } else {
+                dispath(deleteUserSuccess(data))
+            }
+        } catch (error) {
+            dispath(deleteUserFailure(error.message))
+        }
+    }
+
     return (
         <div className='max-w-lg mx-auto p-3 w-full'>
             <h1 className='my-7 text-center font-semibold text-4xl'>Profile</h1>
@@ -134,7 +161,7 @@ export default function DashProfile() {
                 </Button>
             </form>
             <div className='text-red-500 flex justify-between mt-5'>
-                <span className='cursor-pointer'>Delete Account</span>
+                <span onClick={() => setShowModal(true)} className='cursor-pointer'>Delete Account</span>
                 <span className='cursor-pointer'>Sign Out</span>
             </div>
             {updateUserSuccess && (
@@ -147,6 +174,22 @@ export default function DashProfile() {
                     {updateUserError}
                 </Alert>
             )}
+            {error && (
+                <Alert color='failure' className='mt-5'>
+                    {error}
+                </Alert>
+            )}
+            <Modal show={showModal} onClose={() => setShowModal(false)} popup size='md'>
+                <Modal.Header />
+                <Modal.Body>
+                    <HiOutlineExclamationCircle className='h-14 w-14 text-red-700 dark:text-gray-200 mb-5 mx-auto' />
+                    <h3 className='mb-7 text-center text-lg text-gray-500 dark:text-gray-400 font-medium font-'>Are you sure ? You want to delete account ?</h3>
+                    <div className='flex justify-center gap-7'>
+                        <Button color='failure' onClick={handleDeleteUser}>Yes, I'm sure</Button>
+                        <Button color='gray' onClick={() => setShowModal(false)}>No cancel</Button>
+                    </div>
+                </Modal.Body>
+            </Modal>
         </div>
     )
 }
