@@ -22,18 +22,20 @@ export default function DashProfile() {
     }
     useEffect(() => {
         if (imageFile) {
-          uploadImage();
+            uploadImage();
         }
       }, [imageFile]);    
 
     const uploadImage = async () => {
-        // match /b/{bucket}/o {
+        // service firebase.storage {
+        //     match /b/{bucket}/o {
         //     match /{allPaths=**} {
         //       allow read;
         //       allow write: if
-        //       request.resource.size < 2 * 1024 * 1024 && 
-        //       request.resource.contentType.matches('image/*')
+        //       request.resource.size < 2 * 1024 * 1024 &&
+        //       request.resource.contentType.matches('image/.*')
         //     }
+        //   }
         // }
         setImageFileUploadError(null)
         const storage = getStorage(app);
@@ -43,26 +45,23 @@ export default function DashProfile() {
         uploadTask.on(
             'state_changed',
             (snapshot) => {
-              const progress =
-                (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-      
-              setImageFileUploadProgress(progress.toFixed(0));
+                const progress =
+                    (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        
+                setImageFileUploadProgress(progress.toFixed(0));
             },
             (error) => {
-              setImageFileUploadError(
-                'Could not upload image (File must be less than 2MB)'
-              );
-              setImageFileUploadProgress(null);
-              setImageFile(null);
-              setImageFileUrl(null);
-              //setImageFileUploading(false);
+                setImageFileUploadError(
+                    'Could not upload image (File must be less than 2MB)'
+                );
+                setImageFileUploadProgress(null);
+                setImageFile(null);
+                setImageFileUrl(null);
             },
             () => {
-              getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-                setImageFileUrl(downloadURL);
-                //setFormData({ ...formData, profilePicture: downloadURL });
-                //setImageFileUploading(false);
-              })
+                getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+                    setImageFileUrl(downloadURL);
+                })
             }
           )
     }
