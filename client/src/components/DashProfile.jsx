@@ -11,7 +11,8 @@ import {
     updateFailure,
     deleteUserStart,
     deleteUserSuccess,
-    deleteUserFailure
+    deleteUserFailure,
+    signoutSuccess
 } from '../redux/user/userSlice'
 import { useDispatch } from 'react-redux'
 import { HiOutlineExclamationCircle } from 'react-icons/hi'
@@ -28,7 +29,7 @@ export default function DashProfile() {
     const [showModal, setShowModal] = useState(false)
     const [fromData, setFromData] = useState({})
     const filePickerRef = useRef()
-    const dispath = useDispatch()
+    const dispatch = useDispatch()
     const handleImageChange = (e) => {
         const file = e.target.files[0]
         if(file) {
@@ -101,7 +102,7 @@ export default function DashProfile() {
             return
         }
         try {
-            dispath(updateStart())
+            dispatch(updateStart())
             const res = await fetch(`/api/user/update/${currentUser._id}`, {
                 method: 'PUT',
                 headers: {
@@ -111,14 +112,14 @@ export default function DashProfile() {
             })
             const data = await res.json()
             if(!res.ok) {
-                dispath(updateFailure(data.message))
+                dispatch(updateFailure(data.message))
                 setUpdateUserError(date.message)
             } else {
-                dispath(updateSuccess(data))
+                dispatch(updateSuccess(data))
                 setUpdateUserSuccess("Use's profile updated seccessfully")
             }
         } catch (error) {
-            dispath(updateFailure(data.message))
+            dispatch(updateFailure(data.message))
             setUpdateUserError(date.message)
         }
     }
@@ -126,18 +127,34 @@ export default function DashProfile() {
     const handleDeleteUser = async () => {
         setShowModal(false)
         try {
-            dispath(deleteUserStart())
+            dispatch(deleteUserStart())
             const res = await fetch(`/api/user/delete/${currentUser._id}`, {
                 method: 'DELETE'
             })
             const data = await res.json()
             if(!res.ok) {
-                dispath(deleteUserFailure(data.message))
+                dispatch(deleteUserFailure(data.message))
             } else {
-                dispath(deleteUserSuccess(data))
+                dispatch(deleteUserSuccess(data))
             }
         } catch (error) {
-            dispath(deleteUserFailure(error.message))
+            dispatch(deleteUserFailure(error.message))
+        }
+    }
+
+    const handleSignout = async () => {
+        try {
+            const res = await fetch('/api/user/signout', {
+                method: 'POST'
+            })
+            const data = await res.json()
+            if(!res.ok) {
+                console.log(data.message)
+            } else {
+                dispatch(signoutSuccess())
+            }
+        } catch (error) {
+            console.log(error.message)
         }
     }
 
@@ -162,7 +179,7 @@ export default function DashProfile() {
             </form>
             <div className='text-red-500 flex justify-between mt-5'>
                 <span onClick={() => setShowModal(true)} className='cursor-pointer'>Delete Account</span>
-                <span className='cursor-pointer'>Sign Out</span>
+                <span onClick={handleSignout} className='cursor-pointer'>Sign Out</span>
             </div>
             {updateUserSuccess && (
                 <Alert color='success' className='mt-5'>
