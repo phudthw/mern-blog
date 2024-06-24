@@ -34,6 +34,7 @@ export default function DashSidebar() {
             console.log(error.message)
         }
     }
+    
   return (
     <Sidebar className="w-full md:w-72">
         <Sidebar.Items>
@@ -51,3 +52,4 @@ export default function DashSidebar() {
     </Sidebar>
   )
 }
+    
