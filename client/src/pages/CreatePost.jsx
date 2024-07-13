@@ -130,6 +130,7 @@ export default function CreatePost() {
                             setFormData({ ...formData, content: value })
                         }
                     }
+                    as='div'
                 />
                 <Button type="submit" gradientDuoTone='purpleToPink'>Publish</Button>
                 {
